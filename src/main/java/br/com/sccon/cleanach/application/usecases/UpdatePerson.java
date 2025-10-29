@@ -2,7 +2,6 @@ package br.com.sccon.cleanach.application.usecases;
 
 import br.com.sccon.cleanach.application.gateways.PersonRepository;
 import br.com.sccon.cleanach.domain.Person;
-import br.com.sccon.cleanach.domain.dto.AgeOutput;
 
 import java.util.Map;
 

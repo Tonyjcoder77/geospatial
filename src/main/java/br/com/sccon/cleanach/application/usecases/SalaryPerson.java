@@ -1,8 +1,7 @@
 package br.com.sccon.cleanach.application.usecases;
 
 import br.com.sccon.cleanach.application.gateways.PersonRepository;
-import br.com.sccon.cleanach.domain.dto.AgeOutput;
-import br.com.sccon.cleanach.domain.dto.SalaryOutput;
+import br.com.sccon.cleanach.domain.enums.SalaryOutput;
 
 import java.math.BigDecimal;
 

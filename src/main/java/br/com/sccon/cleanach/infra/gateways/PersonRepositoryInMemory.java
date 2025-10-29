@@ -2,12 +2,8 @@ package br.com.sccon.cleanach.infra.gateways;
 
 import br.com.sccon.cleanach.application.gateways.PersonRepository;
 import br.com.sccon.cleanach.domain.Person;
-import br.com.sccon.cleanach.domain.dto.AgeOutput;
-import br.com.sccon.cleanach.domain.dto.SalaryOutput;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import br.com.sccon.cleanach.domain.enums.AgeOutput;
+import br.com.sccon.cleanach.domain.enums.SalaryOutput;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -22,29 +18,26 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class PersonRepositoryInMemory implements PersonRepository {
 
-    // mapa em memória
     private final Map<Long, Person> persons = new ConcurrentHashMap<>();
     private static final BigDecimal MIN_WAGE = new BigDecimal("1302.00"); // (fev/2023)
-    private static final BigDecimal START_SALARY = new BigDecimal("1556.00");
+    private static final BigDecimal START_SALARY = new BigDecimal("1558.00");
 
     public PersonRepositoryInMemory() {
         // 3 pessoas iniciais
         persons.put(1L, new Person(1L, "José da Silva",
                 LocalDate.of(2000, 4, 6), LocalDate.of(2020, 5, 10)));
-        persons.put(2L, new Person(2L, "Ana Paula Ayrosa",
-                LocalDate.of(1998, 9, 12), LocalDate.of(2019, 3, 4)));
-        persons.put(3L, new Person(3L,"Bruno Costa Quente",
-                LocalDate.of(1995, 1, 20), LocalDate.of(2022, 1, 15)));
+        persons.put(2L, new Person(2L, "Ronald Reagan",
+                LocalDate.of(2005, 2, 01), LocalDate.of(2015, 7, 12)));
+        persons.put(3L, new Person(3L,"Santos Dummont",
+                LocalDate.of(2014, 10, 14), LocalDate.of(2025, 4, 21)));
     }
 
-    // 1) lista ordenada por nome
     @Override
     public Map<Long, Person> downloadPersons() {
 
         return this.persons;
     }
 
-    // 2) busca por id
     @Override
     public Person downloadOnePerson(Long id) {
         var p = this.persons.get(id);
@@ -52,7 +45,6 @@ public class PersonRepositoryInMemory implements PersonRepository {
         return p;
     }
 
-    // 3) cria
     @Override
     public Person personPersistence(Person body) {
         if (body.getId() == null) {
@@ -65,14 +57,12 @@ public class PersonRepositoryInMemory implements PersonRepository {
         return body;
     }
 
-    // 4) delete
     @Override
     public void removePerson(Long id) {
         if (this.persons.remove(id) == null)
             throw new ResponseStatusException(NOT_FOUND, "Pessoa não encontrada");
     }
 
-    // 5) update total (PUT)
     @Override
     public Person replacePerson(Long id, Person body) {
         if (!this.persons.containsKey(id)) throw new ResponseStatusException(NOT_FOUND, "Pessoa não encontrada");
@@ -81,7 +71,6 @@ public class PersonRepositoryInMemory implements PersonRepository {
         return body;
     }
 
-    // 6) patch (atributos parciais)
     @Override
     public Person updatePerson(Long id, Map<String, Object> fields) {
         var p = this.persons.get(id);
@@ -98,7 +87,6 @@ public class PersonRepositoryInMemory implements PersonRepository {
         return p;
     }
 
-    // 7) idade em days|months|years
     @Override
     public long agePerson(Long id, AgeOutput out) {
         var p = downloadOnePerson(id);
@@ -109,24 +97,19 @@ public class PersonRepositoryInMemory implements PersonRepository {
         };
     }
 
-    // 8) salário atual: full (R$) ou min (qtd de salários mínimos)
     @Override
     public BigDecimal salaryPerson(Long id, SalaryOutput out) {
         var p = downloadOnePerson(id);
         int yearsInCompany = (int) ChronoUnit.YEARS.between(p.getDateOfAdmission(), LocalDate.now());
 
-        // Regra do enunciado:
-        // inicia em 1556,00 e a CADA ANO: salario = salario * 1.18 + 500
         BigDecimal s = START_SALARY;
         for (int i = 0; i < yearsInCompany; i++) {
             s = s.multiply(new BigDecimal("1.18")).add(new BigDecimal("500"));
         }
 
         if (out == SalaryOutput.full) {
-            // duas casas decimais, arredondando para cima
             return s.setScale(2, RoundingMode.CEILING);
         } else {
-            // quantidade de salários mínimos (duas casas, arredondando para cima)
             return s.divide(MIN_WAGE, 2, RoundingMode.CEILING);
         }
     }

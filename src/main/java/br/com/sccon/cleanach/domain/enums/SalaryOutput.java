@@ -1,4 +1,4 @@
-package br.com.sccon.cleanach.domain.dto;
+package br.com.sccon.cleanach.domain.enums;
 
 public enum SalaryOutput {
     min, full;
